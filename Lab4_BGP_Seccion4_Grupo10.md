@@ -18,15 +18,20 @@
                                192.168.60.0/24
 ```
 
-### Descripción de conexiones
+### Tabla de conexiones físicas
 
-| Enlace | Dispositivo A | Interfaz | Dispositivo B | Interfaz | Red |
-|--------|---------------|----------|---------------|----------|-----|
-| R0–R1 | R0 | G0/1 | R1 | G0/0 | 192.168.30.0/24 |
-| R1–R2 | R1 | G0/1 | R2 | G0/0 | 192.168.40.0/24 |
-| R0–SW2 | R0 | G0/0 | Switch2 | — | 192.168.10.0/24 |
-| R1–SW0 | R1 | G0/2 | Switch0 | — | 192.168.60.0/24 |
-| R2–SW1 | R2 | G0/1 | Switch1 | — | 192.168.50.0/24 |
+| # | Dispositivo A | Interfaz A | Dispositivo B | Interfaz B | Tipo de cable | Red / Segmento | ASN |
+|---|---------------|------------|---------------|------------|---------------|----------------|-----|
+| 1 | R0 | G0/0 | Switch2 | Fa0/1 | Copper Straight-Through | 192.168.10.0/24 | 100 |
+| 2 | Switch2 | Fa0/2 | PC-0 | NIC | Copper Straight-Through | 192.168.10.0/24 | 100 |
+| 3 | R0 | G0/1 | R1 | G0/0 | Copper Cross-Over | 192.168.30.0/24 | 100↔200 |
+| 4 | R1 | G0/1 | R2 | G0/0 | Copper Cross-Over | 192.168.40.0/24 | 200↔300 |
+| 5 | R1 | G0/2 | Switch0 | Fa0/1 | Copper Straight-Through | 192.168.60.0/24 | 200 |
+| 6 | Switch0 | Fa0/2 | PC-1 | NIC | Copper Straight-Through | 192.168.60.0/24 | 200 |
+| 7 | R2 | G0/1 | Switch1 | Fa0/1 | Copper Straight-Through | 192.168.50.0/24 | 300 |
+| 8 | Switch1 | Fa0/2 | PC-2 | NIC | Copper Straight-Through | 192.168.50.0/24 | 300 |
+
+> Los puertos del switch (Fa0/1, Fa0/2) pueden ser cualquier puerto FastEthernet disponible; los números son de ejemplo.
 
 **Equipos requeridos:**
 - 3 × Router Cisco 2911 (R1 necesita 3 interfaces GigabitEthernet → ya las trae el 2911)

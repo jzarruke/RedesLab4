@@ -23,6 +23,21 @@
                192.168.30.104   192.168.40.104
 ```
 
+### Tabla de conexiones físicas
+
+| # | Dispositivo A | Interfaz A | Dispositivo B | Interfaz B | Tipo de cable | Red / Segmento |
+|---|---------------|------------|---------------|------------|---------------|----------------|
+| 1 | R0 | G0/0 | R1 | G0/0 | Copper Cross-Over | 192.168.10.0/24 |
+| 2 | R0 | G0/1 | R2 | G0/0 | Copper Cross-Over | 192.168.20.0/24 |
+| 3 | R1 | G0/1 | Switch0 | Fa0/1 | Copper Straight-Through | 192.168.30.0/24 |
+| 4 | Switch0 | Fa0/2 | PC-0 | NIC | Copper Straight-Through | 192.168.30.0/24 |
+| 5 | R2 | G0/1 | Switch1 | Fa0/1 | Copper Straight-Through | 192.168.40.0/24 |
+| 6 | Switch1 | Fa0/2 | PC-1 | NIC | Copper Straight-Through | 192.168.40.0/24 |
+| 7 | R1 | Loopback2 | — | — | (virtual) | 172.16.0.0/16 |
+| 8 | R2 | Loopback3 | — | — | (virtual) | 172.17.0.0/16 |
+
+> Los puertos del switch (Fa0/1, Fa0/2) pueden ser cualquier puerto FastEthernet disponible; los números son de ejemplo.
+
 | Dispositivo | Interfaz | Dirección IP | Máscara | Gateway |
 |-------------|----------|--------------|---------|---------|
 | R0 | G0/0 | 192.168.10.10 | 255.255.255.0 | N/A |

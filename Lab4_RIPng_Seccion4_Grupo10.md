@@ -21,14 +21,18 @@
           2002:ABCD:1435:C1::/64   2002:ABCD:1435:D1::/64
 ```
 
-### Descripción de conexiones
+### Tabla de conexiones físicas
 
-| Enlace | Dispositivo A | Interfaz | Dispositivo B | Interfaz | Red IPv6 |
-|--------|---------------|----------|---------------|----------|----------|
-| R0–R1 | R0 | G0/0 | R1 | G0/0 | 2001:ABCD:1435:A1::/64 |
-| R0–R2 | R0 | G0/1 | R2 | G0/0 | 2002:ABCD:1435:B1::/64 |
-| R1–SW0 | R1 | G0/1 | Switch0 | — | 2002:ABCD:1435:C1::/64 |
-| R2–SW1 | R2 | G0/1 | Switch1 | — | 2002:ABCD:1435:D1::/64 |
+| # | Dispositivo A | Interfaz A | Dispositivo B | Interfaz B | Tipo de cable | Red IPv6 / Segmento |
+|---|---------------|------------|---------------|------------|---------------|---------------------|
+| 1 | R0 | G0/0 | R1 | G0/0 | Copper Cross-Over | 2001:ABCD:1435:A1::/64 |
+| 2 | R0 | G0/1 | R2 | G0/0 | Copper Cross-Over | 2002:ABCD:1435:B1::/64 |
+| 3 | R1 | G0/1 | Switch0 | Fa0/1 | Copper Straight-Through | 2002:ABCD:1435:C1::/64 |
+| 4 | Switch0 | Fa0/2 | PC-0 | NIC | Copper Straight-Through | 2002:ABCD:1435:C1::/64 |
+| 5 | R2 | G0/1 | Switch1 | Fa0/1 | Copper Straight-Through | 2002:ABCD:1435:D1::/64 |
+| 6 | Switch1 | Fa0/2 | PC-1 | NIC | Copper Straight-Through | 2002:ABCD:1435:D1::/64 |
+
+> Los puertos del switch (Fa0/1, Fa0/2) pueden ser cualquier puerto FastEthernet disponible; los números son de ejemplo.
 
 ---
 
