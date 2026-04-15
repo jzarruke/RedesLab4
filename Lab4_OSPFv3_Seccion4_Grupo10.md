@@ -75,13 +75,14 @@
 ### PASO 1 — Eliminar RIPng (si venías de RIPng)
 
 ```
-R0# configure terminal
-R0(config)# no ipv6 router rip RIP1
-R0(config)# interface GigabitEthernet0/0
-R0(config-if)# no ipv6 rip RIP1 enable
-R0(config)# interface GigabitEthernet0/1
-R0(config-if)# no ipv6 rip RIP1 enable
-R0(config)# end
+enable
+configure terminal
+no ipv6 router rip RIP1
+interface GigabitEthernet0/0
+no ipv6 rip RIP1 enable
+interface GigabitEthernet0/1
+no ipv6 rip RIP1 enable
+end
 
 ```
 
