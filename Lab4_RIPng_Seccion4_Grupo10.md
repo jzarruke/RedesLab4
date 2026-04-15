@@ -76,28 +76,23 @@
 ### PASO 1 — Configuración de R0
 
 ```
-! === ROUTER R0 — RIPng ===
 enable
 configure terminal
 
 hostname R0
 
-! OBLIGATORIO: habilitar enrutamiento IPv6
 ipv6 unicast-routing
 
-! Interfaz G0/0 → conecta con R1
 interface GigabitEthernet0/0
  ipv6 address 2001:ABCD:1435:A1::10/64
  ipv6 rip RIP1 enable
  no shutdown
 
-! Interfaz G0/1 → conecta con R2
 interface GigabitEthernet0/1
  ipv6 address 2002:ABCD:1435:B1::10/64
  ipv6 rip RIP1 enable
  no shutdown
 
-! Proceso RIPng (nombre: RIP1)
 ipv6 router rip RIP1
 
 end
@@ -109,28 +104,23 @@ write memory
 ### PASO 2 — Configuración de R1
 
 ```
-! === ROUTER R1 — RIPng ===
 enable
 configure terminal
 
 hostname R1
 
-! OBLIGATORIO: habilitar enrutamiento IPv6
 ipv6 unicast-routing
 
-! Interfaz G0/0 → conecta con R0
 interface GigabitEthernet0/0
  ipv6 address 2001:ABCD:1435:A1::11/64
  ipv6 rip RIP1 enable
  no shutdown
 
-! Interfaz G0/1 → conecta con Switch0 / PC-0
 interface GigabitEthernet0/1
  ipv6 address 2002:ABCD:1435:C1::1/64
  ipv6 rip RIP1 enable
  no shutdown
 
-! Proceso RIPng
 ipv6 router rip RIP1
 
 end
@@ -142,28 +132,23 @@ write memory
 ### PASO 3 — Configuración de R2
 
 ```
-! === ROUTER R2 — RIPng ===
 enable
 configure terminal
 
 hostname R2
 
-! OBLIGATORIO: habilitar enrutamiento IPv6
 ipv6 unicast-routing
 
-! Interfaz G0/0 → conecta con R0
 interface GigabitEthernet0/0
  ipv6 address 2002:ABCD:1435:B1::11/64
  ipv6 rip RIP1 enable
  no shutdown
 
-! Interfaz G0/1 → conecta con Switch1 / PC-1
 interface GigabitEthernet0/1
  ipv6 address 2002:ABCD:1435:D1::1/64
  ipv6 rip RIP1 enable
  no shutdown
 
-! Proceso RIPng
 ipv6 router rip RIP1
 
 end
@@ -254,7 +239,6 @@ RIP process "RIP1", port 521, multicast-group FF02::9, pid 263
 ```
 
 ```
-! Ver rutas aprendidas por RIPng:
 R0# show ipv6 rip database
 ```
 
@@ -263,19 +247,15 @@ R0# show ipv6 rip database
 ### PASO 5d — Prueba de conectividad
 
 ```
-! Desde R0 — ping a vecinos directos:
 R0# ping 2001:ABCD:1435:A1::11    ! → R1 G0/0
 R0# ping 2002:ABCD:1435:B1::11    ! → R2 G0/0
 
-! Desde R0 — ping a redes remotas:
 R0# ping 2002:ABCD:1435:C1::1     ! → R1 G0/1
 R0# ping 2002:ABCD:1435:D1::1     ! → R2 G0/1
 
-! Desde PC-0 (Desktop → Command Prompt):
 ping 2002:ABCD:1435:D1::104       ! → PC-1
 ping 2002:ABCD:1435:C1::1         ! → gateway R1
 
-! Desde PC-1:
 ping 2002:ABCD:1435:C1::104       ! → PC-0
 ```
 
@@ -288,7 +268,6 @@ ping 2002:ABCD:1435:C1::104       ! → PC-0
 **Causa:** No se ejecutó `ipv6 unicast-routing` antes
 ```
 R0(config)# ipv6 unicast-routing
-! Luego volver a configurar las interfaces
 ```
 
 ---
@@ -296,7 +275,6 @@ R0(config)# ipv6 unicast-routing
 ### Error 2: Interfaces sin dirección IPv6 o en estado down
 **Síntoma:** `show ipv6 interface brief` muestra `[down/down]` o sin dirección
 ```
-! Verificar y corregir:
 R0# show ipv6 interface brief
 R0(config)# interface GigabitEthernet0/0
 R0(config-if)# ipv6 address 2001:ABCD:1435:A1::10/64
@@ -309,11 +287,7 @@ R0(config-if)# no shutdown
 **Síntoma:** `show ipv6 route` solo muestra rutas `C` (connected)
 **Causa:** Se olvidó `ipv6 rip RIP1 enable` en alguna interfaz, o el nombre del proceso es diferente en cada router
 ```
-! El nombre del proceso DEBE ser idéntico en todos los routers
-! "RIP1" en R0, "RIP1" en R1 y "RIP1" en R2 → correcto
-! "RIP1" en R0, "RIP2" en R1 → incorrecto, no se comunican
 
-! Verificar nombre del proceso en cada router:
 R0# show ipv6 rip
 R1# show ipv6 rip
 R2# show ipv6 rip
@@ -329,7 +303,6 @@ R2# show ipv6 rip
 3. Dirección mal escrita (revisar los bloques ABCD:1435:C1)
 
 ```
-! Verificar desde el router que la interfaz está activa:
 R1# show ipv6 interface GigabitEthernet0/1
 ```
 
@@ -339,6 +312,32 @@ R1# show ipv6 interface GigabitEthernet0/1
 > ⚠️ Las redes de Topología 3 son **completamente distintas** a las de Topología 1 y 2. Son prefijos IPv6, no IPv4. Asegúrate de estar trabajando en el archivo .pkt correcto.
 
 ---
+
+
+---
+
+## 🔍 TABLA DE PINGS — REFERENCIA RÁPIDA (IPv6)
+
+### Conectividad directa (siempre debe funcionar)
+| Desde | Hacia | IP destino | ¿Debe funcionar? |
+|-------|-------|-----------|-----------------|
+| R0 | R1 G0/0 | `2001:ABCD:1435:A1::11` | ✅ Siempre |
+| R0 | R2 G0/0 | `2002:ABCD:1435:B1::11` | ✅ Siempre |
+| R1 | R0 G0/0 | `2001:ABCD:1435:A1::10` | ✅ Siempre |
+| R2 | R0 G0/1 | `2002:ABCD:1435:B1::10` | ✅ Siempre |
+| PC-0 | R1 gateway | `2002:ABCD:1435:C1::1` | ✅ Siempre |
+| PC-1 | R2 gateway | `2002:ABCD:1435:D1::1` | ✅ Siempre |
+
+### Conectividad remota (solo después de RIPng convergido)
+| Desde | Hacia | IP destino | ¿Debe funcionar? |
+|-------|-------|-----------|-----------------|
+| R0 | R1 G0/1 | `2002:ABCD:1435:C1::1` | ✅ Con RIPng |
+| R0 | R2 G0/1 | `2002:ABCD:1435:D1::1` | ✅ Con RIPng |
+| R1 | R2 G0/0 | `2002:ABCD:1435:B1::11` | ✅ Con RIPng |
+| R1 | R2 G0/1 | `2002:ABCD:1435:D1::1` | ✅ Con RIPng |
+| R2 | R1 G0/1 | `2002:ABCD:1435:C1::1` | ✅ Con RIPng |
+| **PC-0** | **PC-1** | **`2002:ABCD:1435:D1::104`** | **✅ OBJETIVO FINAL** |
+| **PC-1** | **PC-0** | **`2002:ABCD:1435:C1::104`** | **✅ OBJETIVO FINAL** |
 
 ## 7. CHECKLIST RIPng
 

@@ -99,24 +99,19 @@
 ### PASO 2 — Configuración de R0
 
 ```
-! === ROUTER R0 ===
 enable
 configure terminal
 
-! Nombre del dispositivo
 hostname R0
 
-! Interfaz G0/0 → conecta con R1 (red 192.168.10.0/24)
 interface GigabitEthernet0/0
  ip address 192.168.10.10 255.255.255.0
  no shutdown
 
-! Interfaz G0/1 → conecta con R2 (red 192.168.20.0/24)
 interface GigabitEthernet0/1
  ip address 192.168.20.10 255.255.255.0
  no shutdown
 
-! Configuración RIPv1
 router rip
  version 1
  network 192.168.10.0
@@ -131,30 +126,23 @@ write memory
 ### PASO 3 — Configuración de R1
 
 ```
-! === ROUTER R1 ===
 enable
 configure terminal
 
-! Nombre del dispositivo
 hostname R1
 
-! Interfaz G0/0 → conecta con R0 (red 192.168.10.0/24)
 interface GigabitEthernet0/0
  ip address 192.168.10.11 255.255.255.0
  no shutdown
 
-! Interfaz G0/1 → conecta con Switch0/PC-0 (red 192.168.30.0/24)
 interface GigabitEthernet0/1
  ip address 192.168.30.1 255.255.255.0
  no shutdown
 
-! Loopback 2 (interfaz virtual siempre activa)
 interface Loopback2
  ip address 172.16.4.10 255.255.0.0
  no shutdown
 
-! Configuración RIPv1
-! NOTA: 172.16.4.10 pertenece a la clase B → se anuncia como 172.16.0.0
 router rip
  version 1
  network 192.168.10.0
@@ -170,30 +158,23 @@ write memory
 ### PASO 4 — Configuración de R2
 
 ```
-! === ROUTER R2 ===
 enable
 configure terminal
 
-! Nombre del dispositivo
 hostname R2
 
-! Interfaz G0/0 → conecta con R0 (red 192.168.20.0/24)
 interface GigabitEthernet0/0
  ip address 192.168.20.11 255.255.255.0
  no shutdown
 
-! Interfaz G0/1 → conecta con Switch1/PC-1 (red 192.168.40.0/24)
 interface GigabitEthernet0/1
  ip address 192.168.40.1 255.255.255.0
  no shutdown
 
-! Loopback 3 (interfaz virtual siempre activa)
 interface Loopback3
  ip address 172.17.4.10 255.255.0.0
  no shutdown
 
-! Configuración RIPv1
-! NOTA: 172.17.4.10 pertenece a la clase B → se anuncia como 172.17.0.0
 router rip
  version 1
  network 192.168.20.0
@@ -232,22 +213,17 @@ Default Gateway     : 192.168.40.1
 > Primero confirmar que cada dispositivo llega a su vecino directo (sin enrutamiento dinámico aún activo):
 
 ```
-! Desde R0:
 ping 192.168.10.11    ! → debe llegar a R1 G0/0
 ping 192.168.20.11    ! → debe llegar a R2 G0/0
 
-! Desde R1:
 ping 192.168.10.10    ! → debe llegar a R0 G0/0
 ping 192.168.30.104   ! → debe llegar a PC-0 (si ya tiene IP)
 
-! Desde R2:
 ping 192.168.20.10    ! → debe llegar a R0 G0/1
 ping 192.168.40.104   ! → debe llegar a PC-1 (si ya tiene IP)
 
-! Desde PC-0 (CMD en Packet Tracer):
 ping 192.168.30.1     ! → debe llegar a R1 G0/1 (gateway)
 
-! Desde PC-1 (CMD en Packet Tracer):
 ping 192.168.40.1     ! → debe llegar a R2 G0/1 (gateway)
 ```
 
@@ -308,12 +284,10 @@ Buscar sección `router rip` con `version 1` y los `network` correspondientes.
 
 ### PASO 6d — Prueba final PC a PC (¡el objetivo principal!)
 ```
-! Desde PC-0 (Desktop → Command Prompt):
 ping 192.168.40.104    ! → PC-1 (debe funcionar con RIP activo)
 ping 172.16.4.10       ! → Loopback R1
 ping 172.17.4.10       ! → Loopback R2
 
-! Desde PC-1 (Desktop → Command Prompt):
 ping 192.168.30.104    ! → PC-0
 ```
 
@@ -325,7 +299,6 @@ ping 192.168.30.104    ! → PC-0
 **Síntoma:** `show ip interface brief` muestra la interfaz como `down/down`
 **Causa:** Falta el comando `no shutdown` o cable mal conectado
 ```
-! Solución:
 R0# configure terminal
 R0(config)# interface GigabitEthernet0/0
 R0(config-if)# no shutdown
@@ -338,13 +311,7 @@ R0(config-if)# no shutdown
 **Síntoma:** `show ip route` no muestra rutas con `R`
 **Causa:** Comando `network` mal escrito, o interfaces sin `no shutdown`
 ```
-! Verificar:
 R1# show running-config | section router rip
-! Debe mostrar:
-!  router rip
-!   version 1
-!   network 192.168.10.0
-!   network 192.168.20.0
 ```
 **Solución:** Volver a entrar al proceso RIP y re-agregar las redes
 ```
@@ -360,11 +327,9 @@ R0(config-router)# network 192.168.20.0
 **Síntoma:** 172.16.0.0 ó 172.17.0.0 no aparecen en R0 o R2
 **Causa:** Se olvidó agregar `network 172.16.0.0` o `network 172.17.0.0`
 ```
-! En R1:
 R1(config)# router rip
 R1(config-router)# network 172.16.0.0
 
-! En R2:
 R2(config)# router rip
 R2(config-router)# network 172.17.0.0
 ```
@@ -378,9 +343,7 @@ R2(config-router)# network 172.17.0.0
 2. Interfaz G0/1 de R1 apagada (`no shutdown`)
 3. PC en VLAN equivocada en el switch (raro en PT básico)
 ```
-! Verificar estado de interfaces:
 R1# show ip interface brief
-! Debe mostrar GigabitEthernet0/1  192.168.30.1  YES manual  up  up
 ```
 
 ---
@@ -402,10 +365,8 @@ PC-1: gateway debe ser 192.168.40.1  (no 192.168.40.104 ni ningún otro)
 
 ### Comandos de debug (usar con cuidado en PT):
 ```
-! Ver actualizaciones RIP en tiempo real:
 R1# debug ip rip
 
-! Detener debug:
 R1# undebug all
 ```
 
@@ -420,6 +381,35 @@ R1# undebug all
 
 
 ---
+
+
+---
+
+## 🔍 TABLA DE PINGS — REFERENCIA RÁPIDA
+
+### Conectividad directa (antes y después de RIP)
+| Desde | Hacia | IP destino | ¿Debe funcionar? |
+|-------|-------|-----------|-----------------|
+| R0 | R1 G0/0 | `192.168.10.11` | ✅ Siempre |
+| R0 | R2 G0/0 | `192.168.20.11` | ✅ Siempre |
+| R1 | R0 G0/0 | `192.168.10.10` | ✅ Siempre |
+| R2 | R0 G0/1 | `192.168.20.10` | ✅ Siempre |
+| PC-0 | R1 gateway | `192.168.30.1` | ✅ Siempre |
+| PC-1 | R2 gateway | `192.168.40.1` | ✅ Siempre |
+
+### Conectividad remota (solo después de RIP convergido)
+| Desde | Hacia | IP destino | ¿Debe funcionar? |
+|-------|-------|-----------|-----------------|
+| R0 | PC-0 | `192.168.30.104` | ✅ Con RIP |
+| R0 | PC-1 | `192.168.40.104` | ✅ Con RIP |
+| R0 | Loopback R1 | `172.16.4.10` | ✅ Con RIP |
+| R0 | Loopback R2 | `172.17.4.10` | ✅ Con RIP |
+| R1 | PC-1 | `192.168.40.104` | ✅ Con RIP |
+| R1 | Loopback R2 | `172.17.4.10` | ✅ Con RIP |
+| R2 | PC-0 | `192.168.30.104` | ✅ Con RIP |
+| R2 | Loopback R1 | `172.16.4.10` | ✅ Con RIP |
+| **PC-0** | **PC-1** | **`192.168.40.104`** | **✅ OBJETIVO FINAL** |
+| **PC-1** | **PC-0** | **`192.168.30.104`** | **✅ OBJETIVO FINAL** |
 
 ## RESUMEN RÁPIDO — CHECKLIST RIPv1
 

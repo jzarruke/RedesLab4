@@ -99,27 +99,21 @@ En esta topología hay **3 Sistemas Autónomos:**
 ### PASO 1 — Configuración de R0 (ASN 100)
 
 ```
-! === ROUTER R0 — BGP ASN 100 ===
 enable
 configure terminal
 
 hostname R0
 
-! Interfaz hacia PC-0 / Switch2
 interface GigabitEthernet0/0
  ip address 192.168.10.1 255.255.255.0
  no shutdown
 
-! Interfaz hacia R1
 interface GigabitEthernet0/1
  ip address 192.168.30.5 255.255.255.0
  no shutdown
 
-! Configuración BGP
 router bgp 100
- ! Vecino: R1 en ASN 200 (su IP en la red 192.168.30.0)
  neighbor 192.168.30.14 remote-as 200
- ! Anunciar la red local de PC-0
  network 192.168.10.0 mask 255.255.255.0
 
 end
@@ -131,34 +125,26 @@ write memory
 ### PASO 2 — Configuración de R1 (ASN 200)
 
 ```
-! === ROUTER R1 — BGP ASN 200 ===
 enable
 configure terminal
 
 hostname R1
 
-! Interfaz hacia R0 (red 192.168.30.0)
 interface GigabitEthernet0/0
  ip address 192.168.30.14 255.255.255.0
  no shutdown
 
-! Interfaz hacia R2 (red 192.168.40.0)
 interface GigabitEthernet0/1
  ip address 192.168.40.14 255.255.255.0
  no shutdown
 
-! Interfaz hacia PC-1 / Switch0
 interface GigabitEthernet0/2
  ip address 192.168.60.1 255.255.255.0
  no shutdown
 
-! Configuración BGP
 router bgp 200
- ! Vecino: R0 en ASN 100
  neighbor 192.168.30.5 remote-as 100
- ! Vecino: R2 en ASN 300
  neighbor 192.168.40.5 remote-as 300
- ! Anunciar la red local de PC-1
  network 192.168.60.0 mask 255.255.255.0
 
 end
@@ -170,27 +156,21 @@ write memory
 ### PASO 3 — Configuración de R2 (ASN 300)
 
 ```
-! === ROUTER R2 — BGP ASN 300 ===
 enable
 configure terminal
 
 hostname R2
 
-! Interfaz hacia R1 (red 192.168.40.0)
 interface GigabitEthernet0/0
  ip address 192.168.40.5 255.255.255.0
  no shutdown
 
-! Interfaz hacia PC-2 / Switch1
 interface GigabitEthernet0/1
  ip address 192.168.50.1 255.255.255.0
  no shutdown
 
-! Configuración BGP
 router bgp 300
- ! Vecino: R1 en ASN 200
  neighbor 192.168.40.14 remote-as 200
- ! Anunciar la red local de PC-2
  network 192.168.50.0 mask 255.255.255.0
 
 end
@@ -276,9 +256,6 @@ R2# show ip bgp
 
 ```
 R0# show ip route
-! Deben aparecer rutas con "B" (BGP):
-! B  192.168.50.0/24 [20/0] via 192.168.30.14
-! B  192.168.60.0/24 [20/0] via 192.168.30.14
 ```
 
 ---
@@ -286,15 +263,12 @@ R0# show ip route
 ### PASO 5d — Prueba final PC a PC
 
 ```
-! Desde PC-0:
 ping 192.168.60.14    ! → PC-1
 ping 192.168.50.14    ! → PC-2
 
-! Desde PC-1:
 ping 192.168.10.14    ! → PC-0
 ping 192.168.50.14    ! → PC-2
 
-! Desde PC-2:
 ping 192.168.10.14    ! → PC-0
 ping 192.168.60.14    ! → PC-1
 ```
@@ -304,16 +278,12 @@ ping 192.168.60.14    ! → PC-1
 ### PASO 5e — Comandos adicionales de diagnóstico
 
 ```
-! Ver vecinos BGP con detalle:
 R0# show ip bgp neighbors
 
-! Ver solo rutas aprendidas vía BGP:
 R0# show ip route bgp
 
-! Ver atributos de una ruta específica:
 R0# show ip bgp 192.168.50.0
 
-! Ver configuración BGP:
 R0# show running-config | section router bgp
 ```
 
@@ -329,10 +299,8 @@ R0# show running-config | section router bgp
 - ASN incorrecto en `remote-as`
 
 ```
-! Verificar conectividad previa a BGP:
 R0# ping 192.168.30.14    ! debe funcionar antes de configurar BGP
 
-! Verificar configuración BGP:
 R0# show running-config | section router bgp
 ```
 
@@ -343,9 +311,7 @@ R0# show running-config | section router bgp
 **Causa:** Falta el comando `network` o la red no existe en la tabla de rutas del router
 
 ```
-! Verificar que la red que anuncias esté en la tabla de rutas:
 R0# show ip route 192.168.10.0
-! Debe aparecer como "C" (connected) antes de poder anunciarla en BGP
 ```
 
 ---
@@ -355,11 +321,7 @@ R0# show ip route 192.168.10.0
 **Causa:** La ruta no tiene el mejor path seleccionado (falta el `>` en `show ip bgp`)
 
 ```
-! Verificar tabla BGP — buscar el símbolo *>:
 R0# show ip bgp
-! "*>" = válida y mejor ruta → aparecerá en routing table
-! "*"  = válida pero no mejor → NO aparece en routing table
-! " "  = inválida
 ```
 
 ---
@@ -370,14 +332,39 @@ R0# show ip bgp
 **Solución en este lab:** R1 debe anunciar explícitamente las rutas que aprende, o configurar redistribución. En la configuración de este lab, R1 solo anuncia su propia red (192.168.60.0). Para que R0 vea la red de R2 y viceversa, R1 debe actuar como tránsito.
 
 ```
-! En R1, agregar las redes que quieres redistribuir (o usar redistribute):
 R1(config)# router bgp 200
 R1(config-router)# network 192.168.10.0 mask 255.255.255.0
 R1(config-router)# network 192.168.50.0 mask 255.255.255.0
-! Esto solo funciona si R1 tiene esas rutas en su tabla
 ```
 
 ---
+
+
+---
+
+## 🔍 TABLA DE PINGS — REFERENCIA RÁPIDA
+
+### Conectividad directa (verificar ANTES de configurar BGP)
+| Desde | Hacia | IP destino | ¿Debe funcionar? |
+|-------|-------|-----------|-----------------|
+| R0 | R1 G0/0 | `192.168.30.14` | ✅ Siempre |
+| R1 | R0 G0/1 | `192.168.30.5` | ✅ Siempre |
+| R1 | R2 G0/0 | `192.168.40.5` | ✅ Siempre |
+| R2 | R1 G0/1 | `192.168.40.14` | ✅ Siempre |
+| PC-0 | R0 gateway | `192.168.10.1` | ✅ Siempre |
+| PC-1 | R1 gateway | `192.168.60.1` | ✅ Siempre |
+| PC-2 | R2 gateway | `192.168.50.1` | ✅ Siempre |
+
+### Conectividad remota (solo después de sesión BGP establecida)
+| Desde | Hacia | IP destino | ¿Debe funcionar? |
+|-------|-------|-----------|-----------------|
+| R0 | Red PC-1 | `192.168.60.1` | ✅ Con BGP |
+| R0 | Red PC-2 | `192.168.50.1` | ✅ Con BGP |
+| R2 | Red PC-0 | `192.168.10.1` | ✅ Con BGP |
+| R2 | Red PC-1 | `192.168.60.1` | ✅ Con BGP |
+| **PC-0** | **PC-1** | **`192.168.60.14`** | **✅ OBJETIVO FINAL** |
+| **PC-0** | **PC-2** | **`192.168.50.14`** | **✅ OBJETIVO FINAL** |
+| **PC-1** | **PC-2** | **`192.168.50.14`** | **✅ OBJETIVO FINAL** |
 
 ## 7. CHECKLIST BGP
 

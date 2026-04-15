@@ -62,7 +62,6 @@
 ### PASO 1 — Eliminar RIPng (si venías de RIPng)
 
 ```
-! En R0:
 R0# configure terminal
 R0(config)# no ipv6 router rip RIP1
 R0(config)# interface GigabitEthernet0/0
@@ -71,7 +70,6 @@ R0(config)# interface GigabitEthernet0/1
 R0(config-if)# no ipv6 rip RIP1 enable
 R0(config)# end
 
-! Repetir en R1 y R2 con sus interfaces correspondientes
 ```
 
 ---
@@ -79,26 +77,21 @@ R0(config)# end
 ### PASO 2 — Configuración de R0
 
 ```
-! === ROUTER R0 — OSPFv3 ===
 enable
 configure terminal
 
 hostname R0
 
-! OBLIGATORIO: habilitar enrutamiento IPv6
 ipv6 unicast-routing
 
-! Proceso OSPFv3 con Router-ID manual (formato IPv4, valor único)
 ipv6 router ospf 1
  router-id 0.0.0.10
 
-! Interfaz G0/0 → conecta con R1
 interface GigabitEthernet0/0
  ipv6 address 2001:ABCD:1435:A1::10/64
  ipv6 ospf 1 area 0
  no shutdown
 
-! Interfaz G0/1 → conecta con R2
 interface GigabitEthernet0/1
  ipv6 address 2002:ABCD:1435:B1::10/64
  ipv6 ospf 1 area 0
@@ -113,26 +106,21 @@ write memory
 ### PASO 3 — Configuración de R1
 
 ```
-! === ROUTER R1 — OSPFv3 ===
 enable
 configure terminal
 
 hostname R1
 
-! OBLIGATORIO: habilitar enrutamiento IPv6
 ipv6 unicast-routing
 
-! Proceso OSPFv3 con Router-ID manual
 ipv6 router ospf 1
  router-id 0.0.0.11
 
-! Interfaz G0/0 → conecta con R0
 interface GigabitEthernet0/0
  ipv6 address 2001:ABCD:1435:A1::11/64
  ipv6 ospf 1 area 0
  no shutdown
 
-! Interfaz G0/1 → conecta con Switch0 / PC-0
 interface GigabitEthernet0/1
  ipv6 address 2002:ABCD:1435:C1::1/64
  ipv6 ospf 1 area 0
@@ -147,26 +135,21 @@ write memory
 ### PASO 4 — Configuración de R2
 
 ```
-! === ROUTER R2 — OSPFv3 ===
 enable
 configure terminal
 
 hostname R2
 
-! OBLIGATORIO: habilitar enrutamiento IPv6
 ipv6 unicast-routing
 
-! Proceso OSPFv3 con Router-ID manual
 ipv6 router ospf 1
  router-id 0.0.0.12
 
-! Interfaz G0/0 → conecta con R0
 interface GigabitEthernet0/0
  ipv6 address 2002:ABCD:1435:B1::11/64
  ipv6 ospf 1 area 0
  no shutdown
 
-! Interfaz G0/1 → conecta con Switch1 / PC-1
 interface GigabitEthernet0/1
  ipv6 address 2002:ABCD:1435:D1::1/64
  ipv6 ospf 1 area 0
@@ -261,16 +244,12 @@ R2# show ipv6 route
 ### PASO 6c — Verificar proceso OSPFv3
 
 ```
-! Info general del proceso (Router-ID, área, etc.):
 R0# show ipv6 ospf
 
-! Estado de interfaces OSPFv3:
 R0# show ipv6 ospf interface
 
-! Base de datos link-state IPv6:
 R0# show ipv6 ospf database
 
-! Solo rutas OSPFv3 en tabla:
 R0# show ipv6 route ospf
 ```
 
@@ -279,17 +258,14 @@ R0# show ipv6 route ospf
 ### PASO 6d — Prueba de conectividad
 
 ```
-! Desde R0:
 R0# ping 2001:ABCD:1435:A1::11    ! → R1 G0/0
 R0# ping 2002:ABCD:1435:B1::11    ! → R2 G0/0
 R0# ping 2002:ABCD:1435:C1::1     ! → R1 G0/1
 R0# ping 2002:ABCD:1435:D1::1     ! → R2 G0/1
 
-! Desde PC-0 (Desktop → Command Prompt):
 ping 2002:ABCD:1435:D1::104       ! → PC-1
 ping 2002:ABCD:1435:C1::1         ! → gateway R1
 
-! Desde PC-1:
 ping 2002:ABCD:1435:C1::104       ! → PC-0
 ```
 
@@ -303,9 +279,7 @@ ping 2002:ABCD:1435:C1::104       ! → PC-0
 ```
 R0(config)# ipv6 router ospf 1
 R0(config-rtr)# router-id 0.0.0.10
-! Luego refrescar el proceso:
 R0# clear ipv6 ospf process
-! Responder "yes"
 ```
 
 ---
@@ -318,13 +292,10 @@ R0# clear ipv6 ospf process
 - Router-IDs duplicados entre routers
 
 ```
-! Verificar que ipv6 unicast-routing esté activo:
 R0# show running-config | include ipv6 unicast-routing
 
-! Verificar interfaces con OSPFv3:
 R0# show ipv6 ospf interface brief
 
-! Verificar Router-IDs (deben ser distintos):
 R0# show ipv6 ospf | include Router ID
 R1# show ipv6 ospf | include Router ID
 R2# show ipv6 ospf | include Router ID
@@ -337,11 +308,8 @@ R2# show ipv6 ospf | include Router ID
 **Causa:** Falta `ipv6 ospf 1 area 0` en alguna interfaz del router vecino
 
 ```
-! Verificar qué interfaces tienen OSPFv3 habilitado:
 R1# show ipv6 ospf interface
-! Deben aparecer G0/0 y G0/1
 
-! Si falta alguna:
 R1(config)# interface GigabitEthernet0/1
 R1(config-if)# ipv6 ospf 1 area 0
 ```
@@ -352,11 +320,9 @@ R1(config-if)# ipv6 ospf 1 area 0
 **Síntoma:** `show ipv6 route` mezcla rutas `R` y `O`
 **Causa:** No se eliminó RIPng antes de configurar OSPFv3
 ```
-! Verificar:
 R0# show running-config | include ipv6 router rip
 R0# show ipv6 rip
 
-! Si existe, eliminar:
 R0(config)# no ipv6 router rip RIP1
 R0(config)# interface GigabitEthernet0/0
 R0(config-if)# no ipv6 rip RIP1 enable
@@ -374,9 +340,7 @@ R0(config-if)# no ipv6 rip RIP1 enable
 3. La dirección IPv6 del router no coincide con el gateway configurado en el PC
 
 ```
-! Verificar que R1 G0/1 tenga la IP correcta:
 R1# show ipv6 interface GigabitEthernet0/1
-! Debe mostrar: 2002:ABCD:1435:C1::1
 ```
 
 ---
@@ -393,6 +357,32 @@ R1# show ipv6 interface GigabitEthernet0/1
 | Ver proceso | `show ipv6 rip database` | `show ipv6 ospf database` |
 
 ---
+
+
+---
+
+## 🔍 TABLA DE PINGS — REFERENCIA RÁPIDA (IPv6)
+
+### Conectividad directa (siempre debe funcionar)
+| Desde | Hacia | IP destino | ¿Debe funcionar? |
+|-------|-------|-----------|-----------------|
+| R0 | R1 G0/0 | `2001:ABCD:1435:A1::11` | ✅ Siempre |
+| R0 | R2 G0/0 | `2002:ABCD:1435:B1::11` | ✅ Siempre |
+| R1 | R0 G0/0 | `2001:ABCD:1435:A1::10` | ✅ Siempre |
+| R2 | R0 G0/1 | `2002:ABCD:1435:B1::10` | ✅ Siempre |
+| PC-0 | R1 gateway | `2002:ABCD:1435:C1::1` | ✅ Siempre |
+| PC-1 | R2 gateway | `2002:ABCD:1435:D1::1` | ✅ Siempre |
+
+### Conectividad remota (solo después de OSPF en estado FULL)
+| Desde | Hacia | IP destino | ¿Debe funcionar? |
+|-------|-------|-----------|-----------------|
+| R0 | R1 G0/1 | `2002:ABCD:1435:C1::1` | ✅ Con OSPFv3 |
+| R0 | R2 G0/1 | `2002:ABCD:1435:D1::1` | ✅ Con OSPFv3 |
+| R1 | R2 G0/0 | `2002:ABCD:1435:B1::11` | ✅ Con OSPFv3 |
+| R1 | R2 G0/1 | `2002:ABCD:1435:D1::1` | ✅ Con OSPFv3 |
+| R2 | R1 G0/1 | `2002:ABCD:1435:C1::1` | ✅ Con OSPFv3 |
+| **PC-0** | **PC-1** | **`2002:ABCD:1435:D1::104`** | **✅ OBJETIVO FINAL** |
+| **PC-1** | **PC-0** | **`2002:ABCD:1435:C1::104`** | **✅ OBJETIVO FINAL** |
 
 ## 8. CHECKLIST OSPFv3
 

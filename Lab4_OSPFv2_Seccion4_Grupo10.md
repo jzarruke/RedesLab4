@@ -62,17 +62,14 @@
 ### PASO 1 — Eliminar RIPv1 en los 3 routers
 
 ```
-! En R0:
 R0# configure terminal
 R0(config)# no router rip
 R0(config)# end
 
-! En R1:
 R1# configure terminal
 R1(config)# no router rip
 R1(config)# end
 
-! En R2:
 R2# configure terminal
 R2(config)# no router rip
 R2(config)# end
@@ -81,7 +78,6 @@ R2(config)# end
 Confirmar que RIP desapareció:
 ```
 R0# show ip route
-! Solo deben aparecer líneas con "C" (connected). Las "R" ya no deben existir.
 ```
 
 ---
@@ -89,7 +85,6 @@ R0# show ip route
 ### PASO 2 — Configuración R0
 
 ```
-! === ROUTER R0 — OSPFv2 ===
 enable
 configure terminal
 
@@ -108,7 +103,6 @@ write memory
 ### PASO 3 — Configuración R1
 
 ```
-! === ROUTER R1 — OSPFv2 ===
 enable
 configure terminal
 
@@ -128,7 +122,6 @@ write memory
 ### PASO 4 — Configuración R2
 
 ```
-! === ROUTER R2 — OSPFv2 ===
 enable
 configure terminal
 
@@ -229,12 +222,10 @@ C    192.168.40.0/24 is directly connected, GigabitEthernet0/1
 ### PASO 5c — Prueba final PC a PC
 
 ```
-! Desde PC-0 (Desktop → Command Prompt):
 ping 192.168.40.104    ! → PC-1
 ping 172.16.4.10       ! → Loopback R1
 ping 172.17.4.10       ! → Loopback R2
 
-! Desde PC-1 (Desktop → Command Prompt):
 ping 192.168.30.104    ! → PC-0
 ```
 
@@ -243,19 +234,14 @@ ping 192.168.30.104    ! → PC-0
 ### PASO 5d — Comandos adicionales de diagnóstico
 
 ```
-! Ver detalles de interfaces OSPF (costo, estado, hello/dead timers):
 R0# show ip ospf interface
 
-! Ver la base de datos link-state (LSDB):
 R0# show ip ospf database
 
-! Ver solo rutas OSPF (sin las directamente conectadas):
 R0# show ip route ospf
 
-! Ver configuración OSPF activa:
 R0# show running-config | section router ospf
 
-! Ver info general del proceso OSPF (Router-ID, área, etc.):
 R0# show ip ospf
 ```
 
@@ -271,9 +257,7 @@ R0# show ip ospf
 - El comando `network` no cubre la interfaz correcta
 
 ```
-! Verificar que todas las interfaces estén up/up:
 R0# show ip interface brief
-! Debe mostrar "up   up" en G0/0 y G0/1
 ```
 
 ---
@@ -283,7 +267,6 @@ R0# show ip interface brief
 **Causa más común en Packet Tracer:** Router-ID duplicado entre routers
 
 ```
-! Verificar que los Router-IDs sean únicos:
 R0# show ip ospf | include Router ID
 R1# show ip ospf | include Router ID
 R2# show ip ospf | include Router ID
@@ -311,7 +294,6 @@ R2# clear ip ospf process   → responder "yes"
 **Causa:** El comando `network` en OSPF no cubre esa interfaz
 
 ```
-! Si en R1 falta anunciar el loopback:
 R1(config)# router ospf 1
 R1(config-router)# network 172.16.0.0 0.0.255.255 area 0
 ```
@@ -323,13 +305,40 @@ R1(config-router)# network 172.16.0.0 0.0.255.255 area 0
 **Causa:** No se eliminó RIP antes de configurar OSPF
 
 ```
-! Verificar:
 R0# show running-config | section router rip
-! Si aparece algo, eliminarlo:
 R0(config)# no router rip
 ```
 
 ---
+
+
+---
+
+## 🔍 TABLA DE PINGS — REFERENCIA RÁPIDA
+
+### Conectividad directa (siempre debe funcionar)
+| Desde | Hacia | IP destino | ¿Debe funcionar? |
+|-------|-------|-----------|-----------------|
+| R0 | R1 G0/0 | `192.168.10.11` | ✅ Siempre |
+| R0 | R2 G0/0 | `192.168.20.11` | ✅ Siempre |
+| R1 | R0 G0/0 | `192.168.10.10` | ✅ Siempre |
+| R2 | R0 G0/1 | `192.168.20.10` | ✅ Siempre |
+| PC-0 | R1 gateway | `192.168.30.1` | ✅ Siempre |
+| PC-1 | R2 gateway | `192.168.40.1` | ✅ Siempre |
+
+### Conectividad remota (solo después de OSPF en estado FULL)
+| Desde | Hacia | IP destino | ¿Debe funcionar? |
+|-------|-------|-----------|-----------------|
+| R0 | PC-0 | `192.168.30.104` | ✅ Con OSPF |
+| R0 | PC-1 | `192.168.40.104` | ✅ Con OSPF |
+| R0 | Loopback R1 | `172.16.4.10` | ✅ Con OSPF |
+| R0 | Loopback R2 | `172.17.4.10` | ✅ Con OSPF |
+| R1 | PC-1 | `192.168.40.104` | ✅ Con OSPF |
+| R1 | Loopback R2 | `172.17.4.10` | ✅ Con OSPF |
+| R2 | PC-0 | `192.168.30.104` | ✅ Con OSPF |
+| R2 | Loopback R1 | `172.16.4.10` | ✅ Con OSPF |
+| **PC-0** | **PC-1** | **`192.168.40.104`** | **✅ OBJETIVO FINAL** |
+| **PC-1** | **PC-0** | **`192.168.30.104`** | **✅ OBJETIVO FINAL** |
 
 ## 6. CHECKLIST OSPFv2
 
