@@ -118,7 +118,7 @@ interface GigabitEthernet0/1
  no shutdown
 
 router bgp 100
- neighbor 192.168.30.14 remote-as 200
+ neighbor 192.168.30.104 remote-as 200
  network 192.168.10.0 mask 255.255.255.0
 
 end
@@ -136,11 +136,11 @@ configure terminal
 hostname R1
 
 interface GigabitEthernet0/0
- ip address 192.168.30.14 255.255.255.0
+ ip address 192.168.30.104 255.255.255.0
  no shutdown
 
 interface GigabitEthernet0/1
- ip address 192.168.40.14 255.255.255.0
+ ip address 192.168.40.104 255.255.255.0
  no shutdown
 
 interface GigabitEthernet0/2
@@ -175,7 +175,7 @@ interface GigabitEthernet0/1
  no shutdown
 
 router bgp 300
- neighbor 192.168.40.14 remote-as 200
+ neighbor 192.168.40.104 remote-as 200
  network 192.168.50.0 mask 255.255.255.0
 
 end
@@ -188,21 +188,21 @@ write memory
 
 **PC-0:**
 ```
-IP Address  : 192.168.10.14
+IP Address  : 192.168.10.104
 Subnet Mask : 255.255.255.0
 Gateway     : 192.168.10.1
 ```
 
 **PC-1:**
 ```
-IP Address  : 192.168.60.14
+IP Address  : 192.168.60.104
 Subnet Mask : 255.255.255.0
 Gateway     : 192.168.60.1
 ```
 
 **PC-2:**
 ```
-IP Address  : 192.168.50.14
+IP Address  : 192.168.50.104
 Subnet Mask : 255.255.255.0
 Gateway     : 192.168.50.1
 ```
@@ -220,7 +220,7 @@ R0# show ip bgp summary
 ```
 BGP router identifier 192.168.30.5, local AS number 100
 Neighbor        V    AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State/PfxRcd
-192.168.30.14   4   200      10      10        3    0    0 00:01:30        1
+192.168.30.104   4   200      10      10        3    0    0 00:01:30        1
 ```
 > El estado debe mostrar un **número** en la última columna (prefijos recibidos), no "Active" ni "Idle". Si dice "Active" es que la sesión TCP no se ha establecido.
 
@@ -245,8 +245,8 @@ R0# show ip bgp
 ```
 Network          Next Hop         Metric LocPrf Weight Path
 *> 192.168.10.0  0.0.0.0               0         32768 i
-*> 192.168.50.0  192.168.30.14         0             0 200 300 i
-*> 192.168.60.0  192.168.30.14         0             0 200 i
+*> 192.168.50.0  192.168.30.104         0             0 200 300 i
+*> 192.168.60.0  192.168.30.104         0             0 200 i
 ```
 > El `*>` indica la mejor ruta. El `Path` muestra los AS que atraviesa (AS_PATH).
 
@@ -268,14 +268,14 @@ R0# show ip route
 ### PASO 5d — Prueba final PC a PC
 
 ```
-ping 192.168.60.14    ! → PC-1
-ping 192.168.50.14    ! → PC-2
+ping 192.168.60.104    ! → PC-1
+ping 192.168.50.104    ! → PC-2
 
-ping 192.168.10.14    ! → PC-0
-ping 192.168.50.14    ! → PC-2
+ping 192.168.10.104    ! → PC-0
+ping 192.168.50.104    ! → PC-2
 
-ping 192.168.10.14    ! → PC-0
-ping 192.168.60.14    ! → PC-1
+ping 192.168.10.104    ! → PC-0
+ping 192.168.60.104    ! → PC-1
 ```
 
 ---
@@ -304,7 +304,7 @@ R0# show running-config | section router bgp
 - ASN incorrecto en `remote-as`
 
 ```
-R0# ping 192.168.30.14    ! debe funcionar antes de configurar BGP
+R0# ping 192.168.30.104    ! debe funcionar antes de configurar BGP
 
 R0# show running-config | section router bgp
 ```
@@ -352,10 +352,10 @@ R1(config-router)# network 192.168.50.0 mask 255.255.255.0
 ### Conectividad directa (verificar ANTES de configurar BGP)
 | Desde | Hacia | IP destino | ¿Debe funcionar? |
 |-------|-------|-----------|-----------------|
-| R0 | R1 G0/0 | `192.168.30.14` | ✅ Siempre |
+| R0 | R1 G0/0 | `192.168.30.104` | ✅ Siempre |
 | R1 | R0 G0/1 | `192.168.30.5` | ✅ Siempre |
 | R1 | R2 G0/0 | `192.168.40.5` | ✅ Siempre |
-| R2 | R1 G0/1 | `192.168.40.14` | ✅ Siempre |
+| R2 | R1 G0/1 | `192.168.40.104` | ✅ Siempre |
 | PC-0 | R0 gateway | `192.168.10.1` | ✅ Siempre |
 | PC-1 | R1 gateway | `192.168.60.1` | ✅ Siempre |
 | PC-2 | R2 gateway | `192.168.50.1` | ✅ Siempre |
@@ -367,9 +367,9 @@ R1(config-router)# network 192.168.50.0 mask 255.255.255.0
 | R0 | Red PC-2 | `192.168.50.1` | ✅ Con BGP |
 | R2 | Red PC-0 | `192.168.10.1` | ✅ Con BGP |
 | R2 | Red PC-1 | `192.168.60.1` | ✅ Con BGP |
-| **PC-0** | **PC-1** | **`192.168.60.14`** | **✅ OBJETIVO FINAL** |
-| **PC-0** | **PC-2** | **`192.168.50.14`** | **✅ OBJETIVO FINAL** |
-| **PC-1** | **PC-2** | **`192.168.50.14`** | **✅ OBJETIVO FINAL** |
+| **PC-0** | **PC-1** | **`192.168.60.104`** | **✅ OBJETIVO FINAL** |
+| **PC-0** | **PC-2** | **`192.168.50.104`** | **✅ OBJETIVO FINAL** |
+| **PC-1** | **PC-2** | **`192.168.50.104`** | **✅ OBJETIVO FINAL** |
 
 ## 7. CHECKLIST BGP
 
