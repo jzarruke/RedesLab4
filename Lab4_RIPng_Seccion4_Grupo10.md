@@ -359,6 +359,104 @@ R1# show ipv6 interface GigabitEthernet0/1
 
 ---
 
+## CONFIGURACIÓN ALTERNATIVA — FastEthernet
+
+> Usa esta sección si los routers del laboratorio físico tienen interfaces **FastEthernet** (Fa0/0, Fa0/1). Modelos comunes: **Cisco 1841**, **2811**, **2621XM**.
+> Las direcciones IPv6 y la lógica RIPng son exactamente las mismas — solo cambia el nombre de la interfaz.
+
+### Conexiones con FastEthernet
+
+| # | Conexión | Tipo de cable | Red IPv6 |
+|---|----------|---------------|----------|
+| 1 | R0 **Fa0/0** → R1 **Fa0/0** | Copper Cross-Over | 2001:ABCD:1435:A1::/64 |
+| 2 | R0 **Fa0/1** → R2 **Fa0/0** | Copper Cross-Over | 2002:ABCD:1435:B1::/64 |
+| 3 | R1 **Fa0/1** → Switch0 **Fa0/1** | Copper Straight-Through | 2002:ABCD:1435:C1::/64 |
+| 4 | Switch0 **Fa0/2** → PC-0 **Fa0** | Copper Straight-Through | 2002:ABCD:1435:C1::/64 |
+| 5 | R2 **Fa0/1** → Switch1 **Fa0/1** | Copper Straight-Through | 2002:ABCD:1435:D1::/64 |
+| 6 | Switch1 **Fa0/2** → PC-1 **Fa0** | Copper Straight-Through | 2002:ABCD:1435:D1::/64 |
+
+### R0 — FastEthernet
+
+```
+enable
+configure terminal
+
+hostname R0
+
+ipv6 unicast-routing
+
+interface FastEthernet0/0
+ ipv6 address 2001:ABCD:1435:A1::10/64
+ ipv6 rip RIP1 enable
+ no shutdown
+
+interface FastEthernet0/1
+ ipv6 address 2002:ABCD:1435:B1::10/64
+ ipv6 rip RIP1 enable
+ no shutdown
+
+ipv6 router rip RIP1
+
+end
+write memory
+```
+
+### R1 — FastEthernet
+
+```
+enable
+configure terminal
+
+hostname R1
+
+ipv6 unicast-routing
+
+interface FastEthernet0/0
+ ipv6 address 2001:ABCD:1435:A1::11/64
+ ipv6 rip RIP1 enable
+ no shutdown
+
+interface FastEthernet0/1
+ ipv6 address 2002:ABCD:1435:C1::1/64
+ ipv6 rip RIP1 enable
+ no shutdown
+
+ipv6 router rip RIP1
+
+end
+write memory
+```
+
+### R2 — FastEthernet
+
+```
+enable
+configure terminal
+
+hostname R2
+
+ipv6 unicast-routing
+
+interface FastEthernet0/0
+ ipv6 address 2002:ABCD:1435:B1::11/64
+ ipv6 rip RIP1 enable
+ no shutdown
+
+interface FastEthernet0/1
+ ipv6 address 2002:ABCD:1435:D1::1/64
+ ipv6 rip RIP1 enable
+ no shutdown
+
+ipv6 router rip RIP1
+
+end
+write memory
+```
+
+> Los comandos de verificación (`show ipv6 route`, `show ipv6 rip`, etc.) funcionan igual. La salida mostrará `FastEthernet0/0` en lugar de `GigabitEthernet0/0`.
+
+---
+
 ## BORRAR TODA LA CONFIGURACIÓN
 
 Para empezar de cero en cualquier router (borra todo y reinicia):

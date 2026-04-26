@@ -373,24 +373,105 @@ R1(config-router)# network 192.168.50.0 mask 255.255.255.0
 
 ---
 
-## BORRAR TODA LA CONFIGURACIÓN
+## CONFIGURACIÓN ALTERNATIVA — FastEthernet
 
-Para empezar de cero en cualquier router (borra todo y reinicia):
+> Usa esta sección si los routers del laboratorio físico tienen interfaces **FastEthernet**. Modelos comunes: **Cisco 1841**, **2811**.
+> ⚠️ **R1 necesita 3 interfaces.** En routers con FastEthernet, los modelos 1841/2811 traen solo Fa0/0 y Fa0/1 de fábrica. Para la tercera interfaz se necesita un módulo adicional (ej. NM-1FE-TX), que agrega **Fa1/0**.
 
-```
-enable
-write erase
-reload
-```
+### Conexiones con FastEthernet
 
-> Cuando pregunte `Proceed with reload? [confirm]` presiona **Enter**. El router arranca sin ninguna configuración.
+| # | Conexión | Tipo de cable | Red | ASN |
+|---|----------|---------------|-----|-----|
+| 1 | R0 **Fa0/0** → Switch2 **Fa0/1** | Copper Straight-Through | 192.168.10.0/24 | 100 |
+| 2 | Switch2 **Fa0/2** → PC-0 **Fa0** | Copper Straight-Through | 192.168.10.0/24 | 100 |
+| 3 | R0 **Fa0/1** → R1 **Fa0/0** | Copper Cross-Over | 192.168.30.0/24 | 100 ↔ 200 |
+| 4 | R1 **Fa0/1** → R2 **Fa0/0** | Copper Cross-Over | 192.168.40.0/24 | 200 ↔ 300 |
+| 5 | R1 **Fa1/0** → Switch0 **Fa0/1** | Copper Straight-Through | 192.168.60.0/24 | 200 |
+| 6 | Switch0 **Fa0/2** → PC-1 **Fa0** | Copper Straight-Through | 192.168.60.0/24 | 200 |
+| 7 | R2 **Fa0/1** → Switch1 **Fa0/1** | Copper Straight-Through | 192.168.50.0/24 | 300 |
+| 8 | Switch1 **Fa0/2** → PC-2 **Fa0** | Copper Straight-Through | 192.168.50.0/24 | 300 |
 
-Para borrar solo el proceso BGP sin resetear el router completo (reemplaza el número de ASN según el router):
+### R0 — FastEthernet (ASN 100)
 
 ```
 enable
 configure terminal
-no router bgp 100
+
+hostname R0
+
+interface FastEthernet0/0
+ ip address 192.168.10.1 255.255.255.0
+ no shutdown
+
+interface FastEthernet0/1
+ ip address 192.168.30.5 255.255.255.0
+ no shutdown
+
+router bgp 100
+ neighbor 192.168.30.104 remote-as 200
+ network 192.168.10.0 mask 255.255.255.0
+
 end
 write memory
 ```
+
+### R1 — FastEthernet (ASN 200) — requiere módulo NM-1FE-TX para Fa1/0
+
+```
+enable
+configure terminal
+
+hostname R1
+
+interface FastEthernet0/0
+ ip address 192.168.30.104 255.255.255.0
+ no shutdown
+
+interface FastEthernet0/1
+ ip address 192.168.40.104 255.255.255.0
+ no shutdown
+
+interface FastEthernet1/0
+ ip address 192.168.60.1 255.255.255.0
+ no shutdown
+
+router bgp 200
+ neighbor 192.168.30.5 remote-as 100
+ neighbor 192.168.40.5 remote-as 300
+ network 192.168.60.0 mask 255.255.255.0
+
+end
+write memory
+```
+
+### R2 — FastEthernet (ASN 300)
+
+```
+enable
+configure terminal
+
+hostname R2
+
+interface FastEthernet0/0
+ ip address 192.168.40.5 255.255.255.0
+ no shutdown
+
+interface FastEthernet0/1
+ ip address 192.168.50.1 255.255.255.0
+ no shutdown
+
+router bgp 300
+ neighbor 192.168.40.104 remote-as 200
+ network 192.168.50.0 mask 255.255.255.0
+
+end
+write memory
+```
+
+> Los comandos de verificación (`show ip bgp summary`, `show ip route`, etc.) funcionan igual independientemente del tipo de interfaz.
+
+---
+
+## BORRAR TODA LA CONFIGURACIÓN
+
+Para empezar 

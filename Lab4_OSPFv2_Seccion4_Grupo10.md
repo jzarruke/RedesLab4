@@ -405,7 +405,109 @@ R0# show running-config | section router ospf
 
 ---
 
-## 8. BORRAR TODA LA CONFIGURACIÓN
+## 8. CONFIGURACIÓN ALTERNATIVA — FastEthernet
+
+> Usa esta sección si los routers del laboratorio físico tienen interfaces **FastEthernet** (Fa0/0, Fa0/1) en lugar de GigabitEthernet. Modelos comunes con FastEthernet: **Cisco 1841**, **2811**, **2621XM**.
+> La lógica, las IPs y los comandos OSPF son exactamente los mismos — solo cambia el nombre de la interfaz.
+
+### Conexiones con FastEthernet
+
+| # | Conexión | Tipo de cable | Red |
+|---|----------|---------------|-----|
+| 1 | R0 **Fa0/0** → R1 **Fa0/0** | Copper Cross-Over | 192.168.10.0/24 |
+| 2 | R0 **Fa0/1** → R2 **Fa0/0** | Copper Cross-Over | 192.168.20.0/24 |
+| 3 | R1 **Fa0/1** → Switch0 **Fa0/1** | Copper Straight-Through | 192.168.30.0/24 |
+| 4 | Switch0 **Fa0/2** → PC-0 **Fa0** | Copper Straight-Through | 192.168.30.0/24 |
+| 5 | R2 **Fa0/1** → Switch1 **Fa0/1** | Copper Straight-Through | 192.168.40.0/24 |
+| 6 | Switch1 **Fa0/2** → PC-1 **Fa0** | Copper Straight-Through | 192.168.40.0/24 |
+
+### R0 — FastEthernet
+
+```
+enable
+configure terminal
+
+hostname R0
+
+interface FastEthernet0/0
+ ip address 192.168.10.10 255.255.255.0
+ no shutdown
+
+interface FastEthernet0/1
+ ip address 192.168.20.10 255.255.255.0
+ no shutdown
+
+router ospf 1
+ network 192.168.10.0 0.0.0.255 area 0
+ network 192.168.20.0 0.0.0.255 area 0
+
+end
+write memory
+```
+
+### R1 — FastEthernet
+
+```
+enable
+configure terminal
+
+hostname R1
+
+interface FastEthernet0/0
+ ip address 192.168.10.11 255.255.255.0
+ no shutdown
+
+interface FastEthernet0/1
+ ip address 192.168.30.1 255.255.255.0
+ no shutdown
+
+interface Loopback2
+ ip address 172.16.4.10 255.255.0.0
+ no shutdown
+
+router ospf 1
+ network 192.168.10.0 0.0.0.255 area 0
+ network 192.168.30.0 0.0.0.255 area 0
+ network 172.16.0.0 0.0.255.255 area 0
+
+end
+write memory
+```
+
+### R2 — FastEthernet
+
+```
+enable
+configure terminal
+
+hostname R2
+
+interface FastEthernet0/0
+ ip address 192.168.20.11 255.255.255.0
+ no shutdown
+
+interface FastEthernet0/1
+ ip address 192.168.40.1 255.255.255.0
+ no shutdown
+
+interface Loopback3
+ ip address 172.17.4.10 255.255.0.0
+ no shutdown
+
+router ospf 1
+ network 192.168.20.0 0.0.0.255 area 0
+ network 192.168.40.0 0.0.0.255 area 0
+ network 172.17.0.0 0.0.255.255 area 0
+
+end
+write memory
+```
+
+> Los comandos de verificación (`show ip ospf neighbor`, `show ip route`, etc.) funcionan igual. La salida mostrará `FastEthernet0/0` en lugar de `GigabitEthernet0/0`.
+
+---
+
+## 9. BORRAR TODA LA CONFIGURACIÓN
 
 Para empezar de cero en cualquier router (borra todo y reinicia):
 
