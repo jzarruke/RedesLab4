@@ -173,21 +173,21 @@ write memory
 
 **PC-0:**
 ```
-IP Address  : 192.168.10.14
+IP Address  : 192.168.10.104
 Subnet Mask : 255.255.255.0
 Gateway     : 192.168.10.1
 ```
 
 **PC-1:**
 ```
-IP Address  : 192.168.60.14
+IP Address  : 192.168.60.104
 Subnet Mask : 255.255.255.0
 Gateway     : 192.168.60.1
 ```
 
 **PC-2:**
 ```
-IP Address  : 192.168.50.14
+IP Address  : 192.168.50.104
 Subnet Mask : 255.255.255.0
 Gateway     : 192.168.50.1
 ```
@@ -253,14 +253,14 @@ R0# show ip route
 ### PASO 5d — Prueba final PC a PC
 
 ```
-ping 192.168.60.14    ! → PC-1
-ping 192.168.50.14    ! → PC-2
+ping 192.168.60.104    ! → PC-1
+ping 192.168.50.104    ! → PC-2
 
-ping 192.168.10.14    ! → PC-0
-ping 192.168.50.14    ! → PC-2
+ping 192.168.10.104    ! → PC-0
+ping 192.168.50.104    ! → PC-2
 
-ping 192.168.10.14    ! → PC-0
-ping 192.168.60.14    ! → PC-1
+ping 192.168.10.104    ! → PC-0
+ping 192.168.60.104    ! → PC-1
 ```
 
 ---
@@ -352,9 +352,9 @@ R1(config-router)# network 192.168.50.0 mask 255.255.255.0
 | R0 | Red PC-2 | `192.168.50.1` | ✅ Con BGP |
 | R2 | Red PC-0 | `192.168.10.1` | ✅ Con BGP |
 | R2 | Red PC-1 | `192.168.60.1` | ✅ Con BGP |
-| **PC-0** | **PC-1** | **`192.168.60.14`** | **✅ OBJETIVO FINAL** |
-| **PC-0** | **PC-2** | **`192.168.50.14`** | **✅ OBJETIVO FINAL** |
-| **PC-1** | **PC-2** | **`192.168.50.14`** | **✅ OBJETIVO FINAL** |
+| **PC-0** | **PC-1** | **`192.168.60.104`** | **✅ OBJETIVO FINAL** |
+| **PC-0** | **PC-2** | **`192.168.50.104`** | **✅ OBJETIVO FINAL** |
+| **PC-1** | **PC-2** | **`192.168.50.104`** | **✅ OBJETIVO FINAL** |
 
 ## 7. CHECKLIST BGP
 
