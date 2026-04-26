@@ -429,4 +429,28 @@ R1# undebug all
 - [ ] `show ip route` en R2 muestra 6 redes (3 C + 3 R)
 - [ ] PC-0 hace ping exitoso a PC-1 (192.168.40.104)
 - [ ] PC-1 hace ping exitoso a PC-0 (192.168.30.104)
-- [ ] C
+- [ ] Captura Wireshark: paquetes ICMP exitosos + paquetes RIP (UDP 520) visibles
+
+---
+
+## BORRAR TODA LA CONFIGURACIÓN
+
+Para empezar de cero en cualquier router (borra todo y reinicia):
+
+```
+enable
+write erase
+reload
+```
+
+> Cuando pregunte `Proceed with reload? [confirm]` presiona **Enter**. El router arranca sin ninguna configuración.
+
+Para borrar solo el proceso RIP sin resetear el router completo:
+
+```
+enable
+configure terminal
+no router rip
+end
+write memory
+```

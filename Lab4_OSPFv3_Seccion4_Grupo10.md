@@ -6,8 +6,6 @@
 
 ## 1. TOPOLOGÍA
 
-> OSPFv3 usa la **misma topología e IPs que RIPng** — solo cambia el protocolo de enrutamiento.
-
 ```
                         [R0]
                     G0/0 /  \ G0/1
@@ -38,7 +36,7 @@
 
 ---
 
-## 2. TABLA DE DIRECCIONAMIENTO FINAL (X=4, Y=10)
+## 2. TABLA DE DIRECCIONAMIENTO (X=4, Y=10)
 
 | Dispositivo | Interfaz | Dirección IPv6 / Prefijo | Gateway |
 |-------------|----------|--------------------------|---------|
@@ -53,42 +51,27 @@
 
 ---
 
-## 3. DIFERENCIAS CLAVE: OSPFv2 vs OSPFv3
+## 3. CONCEPTO OSPFv3
+
+OSPFv3 es la versión de OSPF diseñada para **IPv6**. Funciona igual que OSPFv2 en cuanto a algoritmo (Dijkstra, áreas, LSAs), pero tiene diferencias importantes en la configuración:
 
 | Aspecto | OSPFv2 (IPv4) | OSPFv3 (IPv6) |
 |---------|--------------|--------------|
 | Protocolo | IPv4 | IPv6 |
-| Configuración | Global (`router ospf`) | Por interfaz (`ipv6 ospf area`) |
 | Comando global obligatorio | No | `ipv6 unicast-routing` |
-| Sintaxis `network` | `network [ip] [wildcard] area [n]` | No existe — se configura en la interfaz |
+| Configuración de redes | Global (`network` + wildcard) | Por interfaz (`ipv6 ospf area`) |
 | Router-ID | Automático (IP más alta) | **Obligatorio** asignarlo manualmente |
-| Vecinos | Descubiertos por Hello (multicast IPv4) | Descubiertos por Hello (multicast IPv6 FF02::5) |
+| Vecinos | Multicast IPv4 (224.0.0.5) | Multicast IPv6 (FF02::5) |
 | Rutas en tabla | Marcadas con **O** | Marcadas con **O** también |
 | Distancia administrativa | 110 | 110 |
 
-> ⚠️ **Diferencia más importante:** En OSPFv3 el Router-ID debe asignarse manualmente porque es un valor de 32 bits (formato IPv4) y el router puede no tener interfaces IPv4 activas para tomarlo automáticamente.
+> ⚠️ **El Router-ID en OSPFv3 debe asignarse manualmente** porque es un valor de 32 bits (formato IPv4) y el router puede no tener interfaces IPv4 activas.
 
 ---
 
 ## 4. CONFIGURACIÓN COMPLETA OSPFv3
 
-### PASO 1 — Eliminar RIPng (si venías de RIPng)
-
-```
-enable
-configure terminal
-no ipv6 router rip RIP1
-interface GigabitEthernet0/0
-no ipv6 rip RIP1 enable
-interface GigabitEthernet0/1
-no ipv6 rip RIP1 enable
-end
-
-```
-
----
-
-### PASO 2 — Configuración de R0
+### PASO 1 — Configuración de R0
 
 ```
 enable
@@ -117,7 +100,7 @@ write memory
 
 ---
 
-### PASO 3 — Configuración de R1
+### PASO 2 — Configuración de R1
 
 ```
 enable
@@ -146,7 +129,7 @@ write memory
 
 ---
 
-### PASO 4 — Configuración de R2
+### PASO 3 — Configuración de R2
 
 ```
 enable
@@ -175,7 +158,7 @@ write memory
 
 ---
 
-### PASO 5 — Configuración de PCs (igual que RIPng)
+### PASO 4 — Configuración de PCs
 
 > En Packet Tracer: PC → **Desktop** → **IP Configuration** → sección **IPv6** → **Static**
 
@@ -197,7 +180,7 @@ IPv6 Default Gateway: 2002:ABCD:1435:D1::1
 
 ## 5. VALIDACIÓN
 
-### PASO 6a — Verificar vecinos OSPFv3 (esperar ~10 segundos)
+### PASO 5a — Verificar vecinos OSPFv3 (esperar ~10 segundos)
 
 ```
 R0# show ipv6 ospf neighbor
@@ -230,7 +213,7 @@ Neighbor ID     Pri   State      Dead Time   Interface ID   Interface
 
 ---
 
-### PASO 6b — Verificar tabla de enrutamiento IPv6
+### PASO 5b — Verificar tabla de enrutamiento IPv6
 
 ```
 R0# show ipv6 route
@@ -255,32 +238,27 @@ R2# show ipv6 route
 
 ---
 
-### PASO 6c — Verificar proceso OSPFv3
+### PASO 5c — Verificar proceso OSPFv3
 
 ```
 R0# show ipv6 ospf
-
 R0# show ipv6 ospf interface
-
 R0# show ipv6 ospf database
-
 R0# show ipv6 route ospf
 ```
 
 ---
 
-### PASO 6d — Prueba de conectividad
+### PASO 5d — Prueba de conectividad
 
 ```
-R0# ping 2001:ABCD:1435:A1::11    ! → R1 G0/0
-R0# ping 2002:ABCD:1435:B1::11    ! → R2 G0/0
-R0# ping 2002:ABCD:1435:C1::1     ! → R1 G0/1
-R0# ping 2002:ABCD:1435:D1::1     ! → R2 G0/1
+R0# ping 2001:ABCD:1435:A1::11
+R0# ping 2002:ABCD:1435:B1::11
+R0# ping 2002:ABCD:1435:C1::1
+R0# ping 2002:ABCD:1435:D1::1
 
-ping 2002:ABCD:1435:D1::104       ! → PC-1
-ping 2002:ABCD:1435:C1::1         ! → gateway R1
-
-ping 2002:ABCD:1435:C1::104       ! → PC-0
+ping 2002:ABCD:1435:D1::104
+ping 2002:ABCD:1435:C1::104
 ```
 
 ---
@@ -289,7 +267,7 @@ ping 2002:ABCD:1435:C1::104       ! → PC-0
 
 ### Error 1: `% OSPFv3: Router-ID is not configured`
 **Síntoma:** OSPFv3 no inicia porque no tiene Router-ID
-**Causa:** No se configuró `router-id` en el proceso y no hay interfaces IPv4 activas
+**Causa:** No se configuró `router-id` y no hay interfaces IPv4 activas
 ```
 R0(config)# ipv6 router ospf 1
 R0(config-rtr)# router-id 0.0.0.10
@@ -307,9 +285,7 @@ R0# clear ipv6 ospf process
 
 ```
 R0# show running-config | include ipv6 unicast-routing
-
 R0# show ipv6 ospf interface brief
-
 R0# show ipv6 ospf | include Router ID
 R1# show ipv6 ospf | include Router ID
 R2# show ipv6 ospf | include Router ID
@@ -323,55 +299,22 @@ R2# show ipv6 ospf | include Router ID
 
 ```
 R1# show ipv6 ospf interface
-
 R1(config)# interface GigabitEthernet0/1
 R1(config-if)# ipv6 ospf 1 area 0
 ```
 
 ---
 
-### Error 4: RIPng y OSPFv3 corriendo al mismo tiempo
-**Síntoma:** `show ipv6 route` mezcla rutas `R` y `O`
-**Causa:** No se eliminó RIPng antes de configurar OSPFv3
-```
-R0# show running-config | include ipv6 router rip
-R0# show ipv6 rip
-
-R0(config)# no ipv6 router rip RIP1
-R0(config)# interface GigabitEthernet0/0
-R0(config-if)# no ipv6 rip RIP1 enable
-R0(config)# interface GigabitEthernet0/1
-R0(config-if)# no ipv6 rip RIP1 enable
-```
-
----
-
-### Error 5: PC no hace ping al gateway IPv6
+### Error 4: PC no hace ping al gateway IPv6
 **Síntoma:** Ping desde PC-0 a 2002:ABCD:1435:C1::1 falla
 **Causas posibles:**
-1. IPv6 configurado en campo IPv4 del PC (verificar en IP Configuration)
-2. Prefijo incorrecto (debe ser /64, no /24 ni /32)
-3. La dirección IPv6 del router no coincide con el gateway configurado en el PC
+1. IPv6 configurado en campo IPv4 del PC — verificar en IP Configuration
+2. Prefijo incorrecto (debe ser /64)
+3. La dirección IPv6 del router no coincide con el gateway del PC
 
 ```
 R1# show ipv6 interface GigabitEthernet0/1
 ```
-
----
-
-## 7. COMPARATIVA FINAL: RIPng vs OSPFv3
-
-| Comando | RIPng | OSPFv3 |
-|---------|-------|--------|
-| Global obligatorio | `ipv6 unicast-routing` | `ipv6 unicast-routing` |
-| Proceso global | `ipv6 router rip RIP1` | `ipv6 router ospf 1` + `router-id` |
-| Activar en interfaz | `ipv6 rip RIP1 enable` | `ipv6 ospf 1 area 0` |
-| Ver vecinos | `show ipv6 rip` | `show ipv6 ospf neighbor` |
-| Ver rutas | `show ipv6 route` → `R` | `show ipv6 route` → `O` |
-| Ver proceso | `show ipv6 rip database` | `show ipv6 ospf database` |
-
----
-
 
 ---
 
@@ -393,14 +336,15 @@ R1# show ipv6 interface GigabitEthernet0/1
 | R0 | R1 G0/1 | `2002:ABCD:1435:C1::1` | ✅ Con OSPFv3 |
 | R0 | R2 G0/1 | `2002:ABCD:1435:D1::1` | ✅ Con OSPFv3 |
 | R1 | R2 G0/0 | `2002:ABCD:1435:B1::11` | ✅ Con OSPFv3 |
-| R1 | R2 G0/1 | `2002:ABCD:1435:D1::1` | ✅ Con OSPFv3 |
 | R2 | R1 G0/1 | `2002:ABCD:1435:C1::1` | ✅ Con OSPFv3 |
 | **PC-0** | **PC-1** | **`2002:ABCD:1435:D1::104`** | **✅ OBJETIVO FINAL** |
 | **PC-1** | **PC-0** | **`2002:ABCD:1435:C1::104`** | **✅ OBJETIVO FINAL** |
 
-## 8. CHECKLIST OSPFv3
+---
 
-- [ ] RIPng eliminado en R0, R1 y R2 (si venías de RIPng)
+## 7. CHECKLIST OSPFv3
+
+- [ ] Topología construida: 3 routers, 2 switches, 2 PCs
 - [ ] `ipv6 unicast-routing` activado en R0, R1 y R2
 - [ ] R0: `ipv6 router ospf 1` con `router-id 0.0.0.10`
 - [ ] R1: `ipv6 router ospf 1` con `router-id 0.0.0.11`
@@ -408,7 +352,40 @@ R1# show ipv6 interface GigabitEthernet0/1
 - [ ] R0: `ipv6 ospf 1 area 0` en G0/0 y G0/1
 - [ ] R1: `ipv6 ospf 1 area 0` en G0/0 y G0/1
 - [ ] R2: `ipv6 ospf 1 area 0` en G0/0 y G0/1
+- [ ] PC-0: IPv6 2002:ABCD:1435:C1::104/64, gateway 2002:ABCD:1435:C1::1
+- [ ] PC-1: IPv6 2002:ABCD:1435:D1::104/64, gateway 2002:ABCD:1435:D1::1
 - [ ] `show ipv6 ospf neighbor` en R0 → 2 vecinos en estado **FULL**
 - [ ] `show ipv6 route` en R0 muestra 2 rutas `C` + 2 rutas `O`
 - [ ] PC-0 hace ping exitoso a PC-1
 - [ ] Captura Wireshark: ICMPv6 exitosos + paquetes OSPFv3 Hello visibles
+
+---
+
+## 8. BORRAR TODA LA CONFIGURACIÓN
+
+Para empezar de cero en cualquier router (borra todo y reinicia):
+
+```
+enable
+write erase
+reload
+```
+
+> Cuando pregunte `Proceed with reload? [confirm]` presiona **Enter**. El router arranca sin ninguna configuración.
+
+Para borrar solo OSPFv3 y las direcciones IPv6 sin resetear el router completo:
+
+```
+enable
+configure terminal
+no ipv6 router ospf 1
+interface GigabitEthernet0/0
+ no ipv6 address
+ no ipv6 ospf 1 area 0
+interface GigabitEthernet0/1
+ no ipv6 address
+ no ipv6 ospf 1 area 0
+no ipv6 unicast-routing
+end
+write memory
+```

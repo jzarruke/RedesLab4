@@ -356,3 +356,34 @@ R1# show ipv6 interface GigabitEthernet0/1
 - [ ] `show ipv6 route` en R0 muestra 2 rutas `C` + 2 rutas `R`
 - [ ] PC-0 hace ping exitoso a PC-1
 - [ ] Captura Wireshark: paquetes ICMPv6 exitosos + paquetes RIPng (UDP 521) visibles
+
+---
+
+## BORRAR TODA LA CONFIGURACIÓN
+
+Para empezar de cero en cualquier router (borra todo y reinicia):
+
+```
+enable
+write erase
+reload
+```
+
+> Cuando pregunte `Proceed with reload? [confirm]` presiona **Enter**. El router arranca sin ninguna configuración.
+
+Para borrar solo RIPng y las direcciones IPv6 sin resetear el router completo:
+
+```
+enable
+configure terminal
+no ipv6 router rip RIP1
+interface GigabitEthernet0/0
+ no ipv6 address
+ no ipv6 rip RIP1 enable
+interface GigabitEthernet0/1
+ no ipv6 address
+ no ipv6 rip RIP1 enable
+no ipv6 unicast-routing
+end
+write memory
+```

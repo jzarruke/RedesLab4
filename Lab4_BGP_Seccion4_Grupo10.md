@@ -46,8 +46,8 @@
 |-------------|----------|--------------|---------|---------|-----|
 | R0 | G0/0 | 192.168.10.1 | 255.255.255.0 | N/A | 100 |
 | R0 | G0/1 | 192.168.30.**5** | 255.255.255.0 | N/A | 100 |
-| R1 | G0/0 | 192.168.30.**⚠️** | 255.255.255.0 | N/A | 200 |
-| R1 | G0/1 | 192.168.40.**⚠️** | 255.255.255.0 | N/A | 200 |
+| R1 | G0/0 | 192.168.30.**104** | 255.255.255.0 | N/A | 200 |
+| R1 | G0/1 | 192.168.40.**104** | 255.255.255.0 | N/A | 200 |
 | R1 | G0/2 | 192.168.60.1 | 255.255.255.0 | N/A | 200 |
 | R2 | G0/0 | 192.168.40.**5** | 255.255.255.0 | N/A | 300 |
 | R2 | G0/1 | 192.168.50.1 | 255.255.255.0 | N/A | 300 |
@@ -61,22 +61,7 @@
 |---------|-------------|-----------|
 | X+1 | 4+1 | **5** → R0 G0/1 y R2 G0/0 |
 | X+Y | 4+10 | **14** → PCs |
-| XY (concat) | "4"+"10" | **"410"** → ⚠️ INVÁLIDO (>255) |
-
-> ⚠️ **PROBLEMA CON R1 G0/0 Y G0/1:** La fórmula XY con X=4 y Y=10 produce "410", que es inválido en IPv4 (máximo 255). **Debes confirmar con Nathalia** qué valor usar para el Grupo 10.
->
-> Opciones más probables:
-> - **Opción A:** Usar X+Y = **14** → 192.168.30.**14** y 192.168.40.**14**
-> - **Opción B:** Usar solo Y = **10** → 192.168.30.**10** y 192.168.40.**10**
->
-> En esta guía se usa la **Opción A (14)** como placeholder. Reemplaza si tu profesor indica otro valor.
-
-**Tabla con Opción A (usar hasta confirmar):**
-
-| Dispositivo | Interfaz | IP usada |
-|-------------|----------|----------|
-| R1 | G0/0 | 192.168.30.**14** |
-| R1 | G0/1 | 192.168.40.**14** |
+| YX (concat) | "10"+"4" | **104** → R1 G0/0 y R1 G0/1 |
 
 ---
 
@@ -118,7 +103,7 @@ interface GigabitEthernet0/1
  no shutdown
 
 router bgp 100
- neighbor 192.168.30.14 remote-as 200
+ neighbor 192.168.30.104 remote-as 200
  network 192.168.10.0 mask 255.255.255.0
 
 end
@@ -136,11 +121,11 @@ configure terminal
 hostname R1
 
 interface GigabitEthernet0/0
- ip address 192.168.30.14 255.255.255.0
+ ip address 192.168.30.104 255.255.255.0
  no shutdown
 
 interface GigabitEthernet0/1
- ip address 192.168.40.14 255.255.255.0
+ ip address 192.168.40.104 255.255.255.0
  no shutdown
 
 interface GigabitEthernet0/2
@@ -175,7 +160,7 @@ interface GigabitEthernet0/1
  no shutdown
 
 router bgp 300
- neighbor 192.168.40.14 remote-as 200
+ neighbor 192.168.40.104 remote-as 200
  network 192.168.50.0 mask 255.255.255.0
 
 end
@@ -220,7 +205,7 @@ R0# show ip bgp summary
 ```
 BGP router identifier 192.168.30.5, local AS number 100
 Neighbor        V    AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State/PfxRcd
-192.168.30.14   4   200      10      10        3    0    0 00:01:30        1
+192.168.30.104   4   200      10      10        3    0    0 00:01:30        1
 ```
 > El estado debe mostrar un **número** en la última columna (prefijos recibidos), no "Active" ni "Idle". Si dice "Active" es que la sesión TCP no se ha establecido.
 
@@ -245,8 +230,8 @@ R0# show ip bgp
 ```
 Network          Next Hop         Metric LocPrf Weight Path
 *> 192.168.10.0  0.0.0.0               0         32768 i
-*> 192.168.50.0  192.168.30.14         0             0 200 300 i
-*> 192.168.60.0  192.168.30.14         0             0 200 i
+*> 192.168.50.0  192.168.30.104         0             0 200 300 i
+*> 192.168.60.0  192.168.30.104         0             0 200 i
 ```
 > El `*>` indica la mejor ruta. El `Path` muestra los AS que atraviesa (AS_PATH).
 
@@ -304,7 +289,7 @@ R0# show running-config | section router bgp
 - ASN incorrecto en `remote-as`
 
 ```
-R0# ping 192.168.30.14    ! debe funcionar antes de configurar BGP
+R0# ping 192.168.30.104    ! debe funcionar antes de configurar BGP
 
 R0# show running-config | section router bgp
 ```
@@ -352,10 +337,10 @@ R1(config-router)# network 192.168.50.0 mask 255.255.255.0
 ### Conectividad directa (verificar ANTES de configurar BGP)
 | Desde | Hacia | IP destino | ¿Debe funcionar? |
 |-------|-------|-----------|-----------------|
-| R0 | R1 G0/0 | `192.168.30.14` | ✅ Siempre |
+| R0 | R1 G0/0 | `192.168.30.104` | ✅ Siempre |
 | R1 | R0 G0/1 | `192.168.30.5` | ✅ Siempre |
 | R1 | R2 G0/0 | `192.168.40.5` | ✅ Siempre |
-| R2 | R1 G0/1 | `192.168.40.14` | ✅ Siempre |
+| R2 | R1 G0/1 | `192.168.40.104` | ✅ Siempre |
 | PC-0 | R0 gateway | `192.168.10.1` | ✅ Siempre |
 | PC-1 | R1 gateway | `192.168.60.1` | ✅ Siempre |
 | PC-2 | R2 gateway | `192.168.50.1` | ✅ Siempre |
@@ -374,8 +359,7 @@ R1(config-router)# network 192.168.50.0 mask 255.255.255.0
 ## 7. CHECKLIST BGP
 
 - [ ] Topología construida: 3 routers, 3 switches, 3 PCs
-- [ ] **Confirmar IPs de R1 G0/0 y G0/1 con el profesor** (problema XY=410)
-- [ ] R0: interfaces UP, `router bgp 100`, neighbor R1, network 192.168.10.0
+- [ ] R0: interfaces UP, `router bgp 100`, neighbor R1 (192.168.30.104), network 192.168.10.0
 - [ ] R1: interfaces UP, `router bgp 200`, neighbors R0 y R2, network 192.168.60.0
 - [ ] R2: interfaces UP, `router bgp 300`, neighbor R1, network 192.168.50.0
 - [ ] PC-0, PC-1, PC-2 con IPs y gateways correctos
@@ -386,3 +370,27 @@ R1(config-router)# network 192.168.50.0 mask 255.255.255.0
 - [ ] `show ip route` muestra rutas con `B`
 - [ ] PC-0 hace ping exitoso a PC-1 y PC-2
 - [ ] Captura Wireshark: paquetes ICMP exitosos + paquetes BGP (TCP puerto 179)
+
+---
+
+## BORRAR TODA LA CONFIGURACIÓN
+
+Para empezar de cero en cualquier router (borra todo y reinicia):
+
+```
+enable
+write erase
+reload
+```
+
+> Cuando pregunte `Proceed with reload? [confirm]` presiona **Enter**. El router arranca sin ninguna configuración.
+
+Para borrar solo el proceso BGP sin resetear el router completo (reemplaza el número de ASN según el router):
+
+```
+enable
+configure terminal
+no router bgp 100
+end
+write memory
+```
