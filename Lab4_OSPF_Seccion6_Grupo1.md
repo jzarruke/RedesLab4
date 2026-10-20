@@ -1,4 +1,4 @@
-# LABORATORIO 4 — OSPFv2
+# LABORATORIO 4 — OSPF
 ## Sección 6 · Grupo 1 (X = 6, Y = 1)
 ### Actividad 6.2 · Topología 1 — IPv4 (Guía 3)
 
@@ -58,9 +58,9 @@ Es la misma topología de RIPv1: solo cambia el protocolo de enrutamiento.
 
 ---
 
-## 3. CONCEPTO OSPFv2
+## 3. CONCEPTO OSPF
 
-OSPFv2 es un protocolo de **estado de enlace (link-state)** que trabaja dentro de un mismo sistema autónomo (IGP). Cada router arma una base de datos con el estado de todos los enlaces y calcula las mejores rutas con el algoritmo SPF de Dijkstra. La métrica es el **costo**, basado en el ancho de banda (10^8 / ancho de banda en bps).
+OSPF es un protocolo de **estado de enlace (link-state)** que trabaja dentro de un mismo sistema autónomo (IGP). Cada router arma una base de datos con el estado de todos los enlaces y calcula las mejores rutas con el algoritmo SPF de Dijkstra. La métrica es el **costo**, basado en el ancho de banda (10^8 / ancho de banda en bps).
 
 | Aspecto | Detalle |
 |---------|---------|
@@ -79,7 +79,7 @@ OSPFv2 es un protocolo de **estado de enlace (link-state)** que trabaja dentro d
 
 ---
 
-## 4. CONFIGURACIÓN COMPLETA OSPFv2
+## 4. CONFIGURACIÓN COMPLETA OSPF
 
 > Si vienen de RIPv1 en los mismos routers, primero borrar RIP con `no router rip`. Si no, las rutas O (AD 110) reemplazan a las R (AD 120), pero RIP sigue enviando tráfico y ensucia la captura.
 
@@ -293,7 +293,7 @@ R1# show running-config | section router ospf
 
 ---
 
-## 6. ERRORES COMUNES OSPFv2
+## 6. ERRORES COMUNES OSPF
 
 ### Error 1: No aparecen vecinos o quedan en INIT
 **Causas:** interfaz apagada, IPs en subredes distintas o un `network` que no cubre la interfaz.
@@ -349,7 +349,7 @@ No es un error: OSPF anuncia las loopbacks como host /32. Solo si se quisiera ve
 
 ---
 
-## 8. CHECKLIST OSPFv2
+## 8. CHECKLIST OSPF
 
 - [ ] Topología construida y mapa de la topología hecho
 - [ ] Hostnames R1, R2, R3
